@@ -15,6 +15,19 @@ export class UserService {
   private firestore = FirebaseConfig.getInstance().getFirestore();
   private auth = FirebaseConfig.getInstance().getAuth();
 
+  private structureUserData(data: any): UserData {
+    return {
+      id: data.id,
+      email: data.email || null,
+      displayName: data.displayName || null,
+      photoURL: data.photoURL || null,
+      role: data.role || 'user',
+      isActive: typeof data.isActive === 'boolean' ? data.isActive : true,
+      createdAt: data.createdAt || new Date().toISOString(),
+      updatedAt: data.updatedAt || new Date().toISOString()
+    };
+  }
+
   async fetchUserData(uid: string): Promise<UserData> {
     try {
       console.log('Attempting to fetch user data for uid:', uid);
@@ -22,16 +35,16 @@ export class UserService {
       const authUser = await this.auth.getUser(uid);
       console.log('Auth user found:', authUser.uid);
 
-      const defaultUserData: UserData = {
+      const defaultUserData = this.structureUserData({
         id: uid,
-        email: authUser.email || null,
-        displayName: authUser.displayName || null,
-        photoURL: authUser.photoURL || null,
+        email: authUser.email,
+        displayName: authUser.displayName,
+        photoURL: authUser.photoURL,
         role: 'user',
         isActive: true,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
-      };
+      });
 
       try {
         const userDoc = await this.firestore
@@ -44,10 +57,10 @@ export class UserService {
           return defaultUserData;
         }
 
-        return {
+        return this.structureUserData({
           id: userDoc.id,
           ...userDoc.data()
-        } as UserData;
+        });
 
       } catch (firestoreError) {
         console.error('Firestore operation failed:', firestoreError);
@@ -78,20 +91,19 @@ export class UserService {
         .doc(uid)
         .update(updatePayload);
 
-      return {
+      return this.structureUserData({
         ...currentData,
         ...updatePayload,
         id: uid,
         email: currentData.email,
         createdAt: currentData.createdAt
-      };
+      });
     } catch (error) {
       console.error('Error in updateUserData:', error);
       throw error;
     }
   }
 
-  // Helper method to check if user exists in Firestore
   private async userExists(uid: string): Promise<boolean> {
     const doc = await this.firestore
       .collection('users')
@@ -106,10 +118,12 @@ export class UserService {
         .collection('users')
         .get();
 
-      const users = usersSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as UserData[];
+      const users = usersSnapshot.docs.map(doc => 
+        this.structureUserData({
+          id: doc.id,
+          ...doc.data()
+        })
+      );
 
       return {
         users,

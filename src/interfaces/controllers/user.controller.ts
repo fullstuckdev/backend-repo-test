@@ -56,13 +56,6 @@ export class UserController {
         });
       }
 
-      if (authenticatedUser.role !== 'admin' && authenticatedUser.uid !== userId) {
-        return res.status(403).json({
-          success: false,
-          error: 'Not authorized to update this user'
-        });
-      }
-
       const updateData = req.body;
 
       const allowedFields = ['displayName', 'photoURL', 'role', 'isActive'];
