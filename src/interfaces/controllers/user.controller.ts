@@ -1,55 +1,82 @@
-import { Response, NextFunction } from 'express';
-import { UpdateUserUseCase } from '../../application/use-cases/user/update-user.use-case';
-import { FetchUserUseCase } from '../../application/use-cases/user/fetch-user.use-case';
-import { UserPresenter } from '../presenters/user.presenter';
-import { FirebaseUserRepository } from '../../infrastructure/repositories/firebase-user.repository';
-import { AuthenticatedRequest } from '../types/express.types';
-import { SwaggerResponse } from '../types/swagger.types';
-import { UserDTO } from '../types/user.types';
+import { Request, Response, NextFunction } from 'express';
+import { UserService } from '../../domain/services/user.service';
 
 export class UserController {
-  private updateUserUseCase: UpdateUserUseCase;
-  private fetchUserUseCase: FetchUserUseCase;
-  private userPresenter: UserPresenter;
+  private userService: UserService;
 
   constructor() {
-    const userRepository = new FirebaseUserRepository();
-    this.updateUserUseCase = new UpdateUserUseCase(userRepository);
-    this.fetchUserUseCase = new FetchUserUseCase(userRepository);
-    this.userPresenter = new UserPresenter();
+    this.userService = new UserService();
   }
 
-  updateUser = async (
-    req: AuthenticatedRequest,
-    res: Response<SwaggerResponse<never>>,
-    next: NextFunction
-  ) => {
+  async fetchUserData(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId = req.user.uid;
-      await this.updateUserUseCase.execute(userId, req.body);
-      
-      res.status(200).json(
-        this.userPresenter.success('User updated successfully')
-      );
-    } catch (error) {
-      next(error);
-    }
-  };
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          error: 'User not authenticated'
+        });
+      }
 
-  fetchUser = async (
-    req: AuthenticatedRequest,
-    res: Response<SwaggerResponse<UserDTO>>,
-    next: NextFunction
-  ) => {
-    try {
-      const userId = req.user.uid;
-      const user = await this.fetchUserUseCase.execute(userId);
-      
-      res.status(200).json(
-        this.userPresenter.toResponse(user)
-      );
+      try {
+        const userData = await this.userService.fetchUserData(user.uid);
+
+        return res.status(200).json({
+          success: true,
+          data: userData
+        });
+      } catch (error: any) {
+        console.error('Error fetching user data:', error);
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to fetch user data',
+          details: error.message
+        });
+      }
     } catch (error) {
       next(error);
     }
-  };
+  }
+
+  async updateUserData(req: Request, res: Response, next: NextFunction) {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          error: 'User not authenticated'
+        });
+      }
+
+      const updateData = req.body;
+
+      // Validate update data
+      const allowedFields = ['displayName', 'photoURL'];
+      const filteredData = Object.keys(updateData)
+        .filter(key => allowedFields.includes(key))
+        .reduce((obj: any, key: string) => {
+          obj[key] = updateData[key];
+          return obj;
+        }, {});
+
+      await this.userService.updateUserData(user.uid, filteredData);
+
+      // Fetch updated data
+      const updatedUserData = await this.userService.fetchUserData(user.uid);
+
+      return res.status(200).json({
+        success: true,
+        message: 'User data updated successfully',
+        data: updatedUserData
+      });
+
+    } catch (error: any) {
+      console.error('Error updating user data:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to update user data',
+        details: error.message
+      });
+    }
+  }
 } 

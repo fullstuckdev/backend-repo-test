@@ -99,16 +99,16 @@ import { AuthMiddleware } from '../middleware/auth.middleware';
 const router = Router();
 const userController = new UserController();
 
-router.put(
-  '/update-user-data',
-  AuthMiddleware.authenticate,
-  userController.updateUser
-);
-
 router.get(
   '/fetch-user-data',
   AuthMiddleware.authenticate,
-  userController.fetchUser
+  userController.fetchUserData.bind(userController)
+);
+
+router.put(
+  '/update-user-data',
+  AuthMiddleware.authenticate,
+  userController.updateUserData.bind(userController)
 );
 
 export { router as userRoutes }; 
