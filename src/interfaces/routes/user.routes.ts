@@ -36,12 +36,19 @@ import { AuthMiddleware } from '../middleware/auth.middleware';
 
 /**
  * @swagger
- * /api/users/update-user-data:
+ * /api/users/update-user-data/{id}:
  *   put:
- *     summary: Update user data
  *     tags: [Users]
+ *     summary: Update user data by ID
  *     security:
  *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
  *     requestBody:
  *       required: true
  *       content:
@@ -49,12 +56,21 @@ import { AuthMiddleware } from '../middleware/auth.middleware';
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               displayName:
  *                 type: string
- *                 description: The new name for the user
+ *                 example: "John Doe"
+ *               photoURL:
+ *                 type: string
+ *                 example: "https://example.com/photo.jpg"
+ *               role:
+ *                 type: string
+ *                 example: "user"
+ *               isActive:
+ *                 type: boolean
+ *                 example: true
  *     responses:
  *       200:
- *         description: User updated successfully
+ *         description: User data updated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -64,6 +80,25 @@ import { AuthMiddleware } from '../middleware/auth.middleware';
  *                   type: boolean
  *                 message:
  *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     displayName:
+ *                       type: string
+ *                     photoURL:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                     isActive:
+ *                       type: boolean
+ *                     createdAt:
+ *                       type: string
+ *                     updatedAt:
+ *                       type: string
  *       401:
  *         description: Unauthorized
  *       500:
@@ -74,7 +109,7 @@ import { AuthMiddleware } from '../middleware/auth.middleware';
  * @swagger
  * /api/users/fetch-user-data:
  *   get:
- *     summary: Get user data
+ *     summary: Fetch user data
  *     tags: [Users]
  *     security:
  *       - BearerAuth: []
@@ -89,7 +124,24 @@ import { AuthMiddleware } from '../middleware/auth.middleware';
  *                 success:
  *                   type: boolean
  *                 data:
- *                   $ref: '#/components/schemas/UserDTO'
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     displayName:
+ *                       type: string
+ *                     photoURL:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                     isActive:
+ *                       type: boolean
+ *                     createdAt:
+ *                       type: string
+ *                     updatedAt:
+ *                       type: string
  *       401:
  *         description: Unauthorized
  *       500:
@@ -106,7 +158,7 @@ router.get(
 );
 
 router.put(
-  '/update-user-data',
+  '/update-user-data/:id',
   AuthMiddleware.authenticate,
   userController.updateUserData.bind(userController)
 );

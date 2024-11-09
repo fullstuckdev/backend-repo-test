@@ -1,6 +1,7 @@
 import { FirebaseConfig } from '../../infrastructure/config/firebase.config';
 
 interface UserData {
+  id: string;
   email: string | null;
   displayName?: string | null;
   photoURL?: string | null;
@@ -16,49 +17,59 @@ export class UserService {
 
   async fetchUserData(uid: string): Promise<UserData> {
     try {
-      const userDoc = await this.firestore
-        .collection('users')
-        .doc(uid)
-        .get();
+      console.log('Attempting to fetch user data for uid:', uid);
 
-      if (!userDoc.exists) {
-        // Get user from Auth
-        const authUser = await this.auth.getUser(uid);
-        
-        // Create default user document
-        const defaultUserData: UserData = {
-          email: authUser.email || null,
-          displayName: authUser.displayName || null,
-          photoURL: authUser.photoURL || null,
-          role: 'user',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
+      const authUser = await this.auth.getUser(uid);
+      console.log('Auth user found:', authUser.uid);
 
-        // Save to Firestore
-        await this.firestore
+      const defaultUserData: UserData = {
+        id: uid,
+        email: authUser.email || null,
+        displayName: authUser.displayName || null,
+        photoURL: authUser.photoURL || null,
+        role: 'user',
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      try {
+        const userDoc = await this.firestore
           .collection('users')
           .doc(uid)
-          .set(defaultUserData);
+          .get();
 
+        if (!userDoc.exists) {
+          await userDoc.ref.set(defaultUserData);
+          return defaultUserData;
+        }
+
+        return {
+          id: userDoc.id,
+          ...userDoc.data()
+        } as UserData;
+
+      } catch (firestoreError) {
+        console.error('Firestore operation failed:', firestoreError);
         return defaultUserData;
       }
-
-      return userDoc.data() as UserData;
     } catch (error) {
       console.error('Error in fetchUserData:', error);
       throw error;
     }
   }
 
-  async updateUserData(uid: string, updateData: Partial<UserData>): Promise<void> {
+  async updateUserData(uid: string, updateData: Partial<UserData>): Promise<UserData> {
     try {
-      // First ensure user document exists
-      await this.fetchUserData(uid);
+      await this.auth.getUser(uid);
+
+      const currentData = await this.fetchUserData(uid);
 
       const updatePayload = {
-        ...updateData,
+        displayName: updateData.displayName ?? currentData.displayName,
+        photoURL: updateData.photoURL ?? currentData.photoURL,
+        role: updateData.role ?? currentData.role,
+        isActive: updateData.isActive ?? currentData.isActive,
         updatedAt: new Date().toISOString()
       };
 
@@ -66,6 +77,14 @@ export class UserService {
         .collection('users')
         .doc(uid)
         .update(updatePayload);
+
+      return {
+        ...currentData,
+        ...updatePayload,
+        id: uid,
+        email: currentData.email,
+        createdAt: currentData.createdAt
+      };
     } catch (error) {
       console.error('Error in updateUserData:', error);
       throw error;

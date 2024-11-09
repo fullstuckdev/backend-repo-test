@@ -40,29 +40,42 @@ export class UserController {
 
   async updateUserData(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = req.user;
-      if (!user) {
+      const authenticatedUser = req.user;
+      if (!authenticatedUser) {
         return res.status(401).json({
           success: false,
           error: 'User not authenticated'
         });
       }
 
+      const userId = req.params.id;
+      if (!userId) {
+        return res.status(400).json({
+          success: false,
+          error: 'User ID is required'
+        });
+      }
+
+      // Optional: Add authorization check
+      if (authenticatedUser.role !== 'admin' && authenticatedUser.uid !== userId) {
+        return res.status(403).json({
+          success: false,
+          error: 'Not authorized to update this user'
+        });
+      }
+
       const updateData = req.body;
 
       // Validate update data
-      const allowedFields = ['displayName', 'photoURL'];
+      const allowedFields = ['displayName', 'photoURL', 'role', 'isActive'];
       const filteredData = Object.keys(updateData)
         .filter(key => allowedFields.includes(key))
-        .reduce((obj: any, key: string) => {
+        .reduce((obj: any, key: any) => {
           obj[key] = updateData[key];
           return obj;
         }, {});
 
-      await this.userService.updateUserData(user.uid, filteredData);
-
-      // Fetch updated data
-      const updatedUserData = await this.userService.fetchUserData(user.uid);
+      const updatedUserData = await this.userService.updateUserData(userId, filteredData);
 
       return res.status(200).json({
         success: true,
@@ -72,6 +85,12 @@ export class UserController {
 
     } catch (error: any) {
       console.error('Error updating user data:', error);
+      if (error.code === 'auth/user-not-found') {
+        return res.status(404).json({
+          success: false,
+          error: 'User not found'
+        });
+      }
       return res.status(500).json({
         success: false,
         error: 'Failed to update user data',
