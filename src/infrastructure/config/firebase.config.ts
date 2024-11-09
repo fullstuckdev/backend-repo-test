@@ -1,4 +1,7 @@
 import * as admin from 'firebase-admin';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export class FirebaseConfig {
   private static instance: FirebaseConfig;
@@ -6,16 +9,26 @@ export class FirebaseConfig {
   private readonly auth: admin.auth.Auth;
 
   private constructor() {
-    const serviceAccount = JSON.parse(
-      process.env.FIREBASE_SERVICE_ACCOUNT_KEY || '{}'
-    );
+    const serviceAccount = {
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    };
 
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
+    try {
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
+        databaseURL: `https://${process.env.FIREBASE_PROJECT_ID}.firebaseio.com`
+      });
 
-    this.firestore = admin.firestore();
-    this.auth = admin.auth();
+      this.firestore = admin.firestore();
+      this.auth = admin.auth();
+
+      console.log('Firebase initialized successfully');
+    } catch (error) {
+      console.error('Error initializing Firebase:', error);
+      throw error;
+    }
   }
 
   public static getInstance(): FirebaseConfig {

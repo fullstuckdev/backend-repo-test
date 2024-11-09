@@ -1,13 +1,13 @@
 import { Response, NextFunction } from 'express';
-import { UpdateUserUseCase } from '../../application/use-cases/user/update-user.use-case';
-import { FetchUserUseCase } from '../../application/use-cases/user/fetch-user.use-case';
+import { IUpdateUserUseCase, IFetchUserUseCase } from '../../application/interfaces/use-cases/user-use-cases.interface';
 import { UserPresenter } from '../presenters/user.presenter';
 import { FirebaseUserRepository } from '../../infrastructure/repositories/firebase-user.repository';
 import { AuthenticatedRequestHandler } from '../types/express.types';
-
+import { UpdateUserUseCase } from '../../application/use-cases/user/update-user.use-case';
+import { FetchUserUseCase } from '../../application/use-cases/user/fetch-user.use-case';
 export class UserController {
-  private updateUserUseCase: UpdateUserUseCase;
-  private fetchUserUseCase: FetchUserUseCase;
+  private updateUserUseCase: IUpdateUserUseCase;
+  private fetchUserUseCase: IFetchUserUseCase;
   private userPresenter: UserPresenter;
 
   constructor() {

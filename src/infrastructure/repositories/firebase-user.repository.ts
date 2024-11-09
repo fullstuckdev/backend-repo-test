@@ -1,6 +1,6 @@
 import { IUserRepository } from '../../application/interfaces/repositories/user-repository.interface';
 import { User } from '../../domain/entities/user.entity';
-import { FirebaseConfig } from '../config/firebase.config';
+import { FirebaseConfig } from '../../infrastructure/config/firebase.config';
 
 export class FirebaseUserRepository implements IUserRepository {
   private readonly db: FirebaseFirestore.Firestore;

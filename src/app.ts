@@ -1,25 +1,16 @@
-import express from 'express';
-import dotenv from 'dotenv';
-import userRoutes from './interfaces/routes/user.routes';
-import { errorHandler } from './interfaces/middleware/error.middleware';
+import { ExpressServer } from './infrastructure/http/express-server';
+import { AppConfig } from './infrastructure/config/app.config';
+import { FirebaseConfig } from './infrastructure/config/firebase.config';
 
-dotenv.config();
+try {
+  // Initialize configurations
+  const config = AppConfig.getInstance();
+  FirebaseConfig.getInstance(); // Initialize Firebase
 
-const app = express();
-
-// Middleware
-app.use(express.json());
-
-// Routes
-app.use('/api/users', userRoutes);
-
-// Error handling
-app.use(errorHandler);
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
-
-export default app;
+  // Start server
+  const server = new ExpressServer();
+  server.start(config.port);
+} catch (error) {
+  console.error('Failed to start application:', error);
+  process.exit(1);
+}

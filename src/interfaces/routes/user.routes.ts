@@ -17,4 +17,4 @@ router.get(
   userController.fetchUser
 );
 
-export default router; 
+export { router as userRoutes }; 
