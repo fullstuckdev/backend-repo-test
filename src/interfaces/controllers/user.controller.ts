@@ -1,11 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
-import { UserService } from '../../domain/services/user.service';
+import { UpdateUserUseCase, UpdateUserDTO } from '../../application/use-cases/user/update-users.use-case';
+import { IFetchUsersUseCase } from '../../application/interfaces/use-cases/user-use-cases.interface';
+import { FirebaseUserRepository } from '../../infrastructure/repositories/firebase-user.repository';
+import { FetchUsersUseCase } from '../../application/use-cases/user/fetch-users.use-case';
 
 export class UserController {
-  private userService: UserService;
+  private updateUserUseCase: UpdateUserUseCase;
+  private fetchUsersUseCase: IFetchUsersUseCase;
 
   constructor() {
-    this.userService = new UserService();
+    const userRepository = new FirebaseUserRepository();
+    this.updateUserUseCase = new UpdateUserUseCase(userRepository);
+    this.fetchUsersUseCase = new FetchUsersUseCase(userRepository);
   }
 
   async updateUserData(req: Request, res: Response, next: NextFunction) {
@@ -19,34 +25,27 @@ export class UserController {
       }
 
       const userId = req.params.id;
-      if (!userId) {
-        return res.status(400).json({
-          success: false,
-          error: 'User ID is required'
-        });
-      }
-
       const updateData = req.body;
 
       const allowedFields = ['displayName', 'photoURL', 'role', 'isActive'];
       const filteredData = Object.keys(updateData)
         .filter(key => allowedFields.includes(key))
-        .reduce((obj: any, key: any) => {
+        .reduce((obj: any, key: string) => {
           obj[key] = updateData[key];
           return obj;
-        }, {});
+        }, {} as UpdateUserDTO);
 
-      const updatedUserData = await this.userService.updateUserData(userId, filteredData);
+      const updatedUser = await this.updateUserUseCase.execute(userId, filteredData);
 
       return res.status(200).json({
         success: true,
         message: 'User data updated successfully',
-        data: updatedUserData
+        data: updatedUser.toJSON()
       });
 
     } catch (error: any) {
       console.error('Error updating user data:', error);
-      if (error.code === 'auth/user-not-found') {
+      if (error.message === 'User not found') {
         return res.status(404).json({
           success: false,
           error: 'User not found'
@@ -62,24 +61,12 @@ export class UserController {
 
   async fetchUsers(req: Request, res: Response, next: NextFunction) {
     try {
-      const { users, total } = await this.userService.fetchAllUsers();
-
-      if (total < 10) {
-        const seeder = require('../../scripts/seed');
-        await seeder.main();
-        const newResult = await this.userService.fetchAllUsers();
-        return res.status(200).json({
-          success: true,
-          data: newResult.users,
-          total: newResult.total,
-          message: 'Users fetched successfully (with additional seeded users)'
-        });
-      }
+      const result = await this.fetchUsersUseCase.execute();
 
       return res.status(200).json({
         success: true,
-        data: users,
-        total,
+        data: result.users,
+        total: result.total,
         message: 'Users fetched successfully'
       });
 

@@ -58,7 +58,7 @@ import { AuthMiddleware } from '../middleware/auth.middleware';
  *             properties:
  *               displayName:
  *                 type: string
- *                 example: "John Doe"
+ *                 example: "Taufik Mulyawan"
  *               photoURL:
  *                 type: string
  *                 example: "https://example.com/photo.jpg"

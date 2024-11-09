@@ -1,13 +1,16 @@
 import { User } from '../../../domain/entities/user.entity';
 
-export interface IUpdateUserUseCase {
-  execute(userId: string, data: UpdateUserDTO): Promise<void>;
-}
-
-export interface IFetchUserUseCase {
-  execute(userId: string): Promise<User>;
-}
-
 export interface UpdateUserDTO {
-  name?: string;
+  displayName?: string;
+  photoURL?: string;
+  role?: string;
+  isActive?: boolean;
+}
+
+export interface IUpdateUserUseCase {
+  execute(userId: string, data: UpdateUserDTO): Promise<User>;
+}
+
+export interface IFetchUsersUseCase {
+  execute(): Promise<{ users: User[], total: number }>;
 } 

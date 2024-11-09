@@ -1,44 +1,75 @@
 import { IUserRepository } from '../../application/interfaces/repositories/user-repository.interface';
 import { User } from '../../domain/entities/user.entity';
 import { FirebaseConfig } from '../config/firebase.config';
-import { UserMapper } from '../mappers/user.mapper';
-import { ApiError } from '../../utils/api-error';
-import { FirestoreUserData } from '../../interfaces/types/firestore.types';
 
 export class FirebaseUserRepository implements IUserRepository {
-  private readonly db: FirebaseFirestore.Firestore;
-  private readonly COLLECTION = 'USERS';
-
-  constructor() {
-    this.db = FirebaseConfig.getInstance().getFirestore();
-  }
+  private firestore = FirebaseConfig.getInstance().getFirestore();
+  private auth = FirebaseConfig.getInstance().getAuth();
 
   async findById(id: string): Promise<User | null> {
-    try {
-      const doc = await this.db.collection(this.COLLECTION).doc(id).get();
-      
-      if (!doc.exists) return null;
-      
-      const data = doc.data()! as Omit<FirestoreUserData, 'id'>;
-      return UserMapper.toDomain({
-        id: doc.id,
-        email: data.email,
-        name: data.name,
-        createdAt: data.createdAt,
-        updatedAt: data.updatedAt
-      });
-    } catch (error) {
-      throw new ApiError(500, 'Failed to fetch user from database');
-    }
+    const userDoc = await this.firestore.collection('users').doc(id).get();
+    if (!userDoc.exists) return null;
+    
+    const userData = userDoc.data();
+    return new User({
+      id: userDoc.id,
+      email: userData?.email ?? null,
+      displayName: userData?.displayName ?? null,
+      photoURL: userData?.photoURL ?? null,
+      role: userData?.role ?? 'user',
+      isActive: userData?.isActive ?? true,
+      createdAt: userData?.createdAt ?? new Date().toISOString(),
+      updatedAt: userData?.updatedAt ?? new Date().toISOString()
+    });
   }
 
   async update(user: User): Promise<void> {
+    const updateData = {
+      email: user.email,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+      role: user.role,
+      isActive: user.isActive,
+      updatedAt: user.updatedAt
+    };
+
     try {
-      const data = UserMapper.toFirestore(user);
-      const { id, ...updateData } = data; // Remove id from update data
-      await this.db.collection(this.COLLECTION).doc(data.id).update(updateData);
+      await this.firestore
+        .collection('users')
+        .doc(user.id)
+        .update(updateData);
     } catch (error) {
-      throw new ApiError(500, 'Failed to update user in database');
+      console.error('Error updating user in Firestore:', error);
+      throw new Error('Failed to update user in database');
     }
+  }
+
+  async findAll(): Promise<User[]> {
+    const usersSnapshot = await this.firestore.collection('users').get();
+    return usersSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return new User({
+        id: doc.id,
+        email: data.email ?? null,
+        displayName: data.displayName ?? null,
+        photoURL: data.photoURL ?? null,
+        role: data.role ?? 'user',
+        isActive: data.isActive ?? true,
+        createdAt: data.createdAt ?? new Date().toISOString(),
+        updatedAt: data.updatedAt ?? new Date().toISOString()
+      });
+    });
+  }
+
+  async create(user: User): Promise<void> {
+    await this.firestore.collection('users').doc(user.id).set({
+      email: user.email,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+      role: user.role,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    });
   }
 } 
