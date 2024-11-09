@@ -105,52 +105,10 @@ import { AuthMiddleware } from '../middleware/auth.middleware';
  *         description: Server error
  */
 
-/**
- * @swagger
- * /api/users/fetch-user-data:
- *   get:
- *     summary: Fetch user data
- *     tags: [Users]
- *     security:
- *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: User data retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: string
- *                     email:
- *                       type: string
- *                     displayName:
- *                       type: string
- *                     photoURL:
- *                       type: string
- *                     role:
- *                       type: string
- *                     isActive:
- *                       type: boolean
- *                     createdAt:
- *                       type: string
- *                     updatedAt:
- *                       type: string
- *       401:
- *         description: Unauthorized
- *       500:
- *         description: Server error
- */
 
 /**
  * @swagger
- * /api/users/fetch-users:
+ * /api/users/fetch-users-data:
  *   get:
  *     tags: [Users]
  *     summary: Fetch all users
@@ -196,11 +154,6 @@ import { AuthMiddleware } from '../middleware/auth.middleware';
 const router = Router();
 const userController = new UserController();
 
-router.get(
-  '/fetch-user-data',
-  AuthMiddleware.authenticate,
-  userController.fetchUserData.bind(userController)
-);
 
 router.put(
   '/update-user-data/:id',
@@ -209,7 +162,7 @@ router.put(
 );
 
 router.get(
-  '/fetch-users',
+  '/fetch-users-data',
   AuthMiddleware.authenticate,
   userController.fetchUsers.bind(userController)
 );

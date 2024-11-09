@@ -8,36 +8,6 @@ export class UserController {
     this.userService = new UserService();
   }
 
-  async fetchUserData(req: Request, res: Response, next: NextFunction) {
-    try {
-      const user = req.user;
-      if (!user) {
-        return res.status(401).json({
-          success: false,
-          error: 'User not authenticated'
-        });
-      }
-
-      try {
-        const userData = await this.userService.fetchUserData(user.uid);
-
-        return res.status(200).json({
-          success: true,
-          data: userData
-        });
-      } catch (error: any) {
-        console.error('Error fetching user data:', error);
-        return res.status(500).json({
-          success: false,
-          error: 'Failed to fetch user data',
-          details: error.message
-        });
-      }
-    } catch (error) {
-      next(error);
-    }
-  }
-
   async updateUserData(req: Request, res: Response, next: NextFunction) {
     try {
       const authenticatedUser = req.user;
