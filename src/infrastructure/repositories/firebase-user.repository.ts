@@ -60,16 +60,4 @@ export class FirebaseUserRepository implements IUserRepository {
       });
     });
   }
-
-  async create(user: User): Promise<void> {
-    await this.firestore.collection('users').doc(user.id).set({
-      email: user.email,
-      displayName: user.displayName,
-      photoURL: user.photoURL,
-      role: user.role,
-      isActive: user.isActive,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt
-    });
-  }
 } 

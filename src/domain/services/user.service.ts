@@ -104,14 +104,6 @@ export class UserService {
     }
   }
 
-  private async userExists(uid: string): Promise<boolean> {
-    const doc = await this.firestore
-      .collection('users')
-      .doc(uid)
-      .get();
-    return doc.exists;
-  }
-
   async fetchAllUsers(): Promise<{ users: UserData[], total: number }> {
     try {
       const usersSnapshot = await this.firestore
