@@ -56,7 +56,6 @@ export class UserController {
         });
       }
 
-      // Optional: Add authorization check
       if (authenticatedUser.role !== 'admin' && authenticatedUser.uid !== userId) {
         return res.status(403).json({
           success: false,
@@ -66,7 +65,6 @@ export class UserController {
 
       const updateData = req.body;
 
-      // Validate update data
       const allowedFields = ['displayName', 'photoURL', 'role', 'isActive'];
       const filteredData = Object.keys(updateData)
         .filter(key => allowedFields.includes(key))
@@ -94,6 +92,39 @@ export class UserController {
       return res.status(500).json({
         success: false,
         error: 'Failed to update user data',
+        details: error.message
+      });
+    }
+  }
+
+  async fetchUsers(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { users, total } = await this.userService.fetchAllUsers();
+
+      if (total < 10) {
+        const seeder = require('../../scripts/seed');
+        await seeder.main();
+        const newResult = await this.userService.fetchAllUsers();
+        return res.status(200).json({
+          success: true,
+          data: newResult.users,
+          total: newResult.total,
+          message: 'Users fetched successfully (with additional seeded users)'
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        data: users,
+        total,
+        message: 'Users fetched successfully'
+      });
+
+    } catch (error: any) {
+      console.error('Error fetching users:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to fetch users',
         details: error.message
       });
     }

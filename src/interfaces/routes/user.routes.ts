@@ -148,6 +148,51 @@ import { AuthMiddleware } from '../middleware/auth.middleware';
  *         description: Server error
  */
 
+/**
+ * @swagger
+ * /api/users/fetch-users:
+ *   get:
+ *     tags: [Users]
+ *     summary: Fetch all users
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Users retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       email:
+ *                         type: string
+ *                       displayName:
+ *                         type: string
+ *                       photoURL:
+ *                         type: string
+ *                       role:
+ *                         type: string
+ *                       isActive:
+ *                         type: boolean
+ *                       createdAt:
+ *                         type: string
+ *                       updatedAt:
+ *                         type: string
+ *                 total:
+ *                   type: number
+ *                 message:
+ *                   type: string
+ */
+
 const router = Router();
 const userController = new UserController();
 
@@ -161,6 +206,12 @@ router.put(
   '/update-user-data/:id',
   AuthMiddleware.authenticate,
   userController.updateUserData.bind(userController)
+);
+
+router.get(
+  '/fetch-users',
+  AuthMiddleware.authenticate,
+  userController.fetchUsers.bind(userController)
 );
 
 export { router as userRoutes }; 

@@ -99,4 +99,25 @@ export class UserService {
       .get();
     return doc.exists;
   }
+
+  async fetchAllUsers(): Promise<{ users: UserData[], total: number }> {
+    try {
+      const usersSnapshot = await this.firestore
+        .collection('users')
+        .get();
+
+      const users = usersSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as UserData[];
+
+      return {
+        users,
+        total: users.length
+      };
+    } catch (error) {
+      console.error('Error fetching all users:', error);
+      throw error;
+    }
+  }
 } 
