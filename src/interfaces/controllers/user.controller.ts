@@ -1,81 +1,55 @@
-import { Request, Response, NextFunction } from 'express';
-import { UpdateUserUseCase, UpdateUserDTO } from '../../application/use-cases/user/update-users.use-case';
+import { Request, Response } from 'express';
+import { UpdateUserUseCase } from '../../application/use-cases/user/update-users.use-case';
 import { IFetchUsersUseCase } from '../../application/interfaces/use-cases/user-use-cases.interface';
-import { FirebaseUserRepository } from '../../infrastructure/repositories/firebase-user.repository';
-import { FetchUsersUseCase } from '../../application/use-cases/user/fetch-users.use-case';
+import { Get, Put } from '../../infrastructure/decorators/route.decorator';
+import { AuthMiddleware } from '../middleware/auth.middleware';
+import { validateDto } from '../../infrastructure/middleware/validation.middleware';
+import { UpdateUserDto } from '../../application/dtos/user.dto';
+import { BaseController } from '../../interfaces/controllers/base.controller';
 
-export class UserController {
-  private updateUserUseCase: UpdateUserUseCase;
-  private fetchUsersUseCase: IFetchUsersUseCase;
-
-  constructor() {
-    const userRepository = new FirebaseUserRepository();
-    this.updateUserUseCase = new UpdateUserUseCase(userRepository);
-    this.fetchUsersUseCase = new FetchUsersUseCase(userRepository);
+export class UserController extends BaseController {
+  constructor(
+    private readonly updateUserUseCase: UpdateUserUseCase,
+    private readonly fetchUsersUseCase: IFetchUsersUseCase
+  ) {
+    super();
   }
 
-  async updateUserData(req: Request, res: Response, next: NextFunction) {
+  @Put('/update-user-data/:id', [AuthMiddleware.authenticate, validateDto(UpdateUserDto)])
+  async updateUserData(req: Request, res: Response) {
     try {
-      const authenticatedUser = req.user;
-      if (!authenticatedUser) {
-        return res.status(401).json({
-          success: false,
-          error: 'User not authenticated'
-        });
-      }
-
       const userId = req.params.id;
-      const updateData = req.body;
-
-      const allowedFields = ['displayName', 'photoURL', 'role', 'isActive'];
-      const filteredData = Object.keys(updateData)
-        .filter(key => allowedFields.includes(key))
-        .reduce((obj: any, key: string) => {
-          obj[key] = updateData[key];
-          return obj;
-        }, {} as UpdateUserDTO);
-
-      const updatedUser = await this.updateUserUseCase.execute(userId, filteredData);
+      const updatedUser = await this.updateUserUseCase.execute(userId, req.body);
 
       return res.status(200).json({
         success: true,
         message: 'User data updated successfully',
         data: updatedUser.toJSON()
       });
-
-    } catch (error: any) {
-      console.error('Error updating user data:', error);
-      if (error.message === 'User not found') {
-        return res.status(404).json({
-          success: false,
-          error: 'User not found'
-        });
-      }
+    } catch (error) {
       return res.status(500).json({
         success: false,
         error: 'Failed to update user data',
-        details: error.message
+        details: (error as Error).message
       });
     }
   }
 
-  async fetchUsers(req: Request, res: Response, next: NextFunction) {
+  @Get('/fetch-users-data', [AuthMiddleware.authenticate])
+  async fetchUsers(req: Request, res: Response) {
     try {
       const result = await this.fetchUsersUseCase.execute();
-
       return res.status(200).json({
         success: true,
         data: result.users,
         total: result.total,
         message: 'Users fetched successfully'
       });
-
-    } catch (error: any) {
-      console.error('Error fetching users:', error);
+    } catch (error) {
       return res.status(500).json({
         success: false,
         error: 'Failed to fetch users',
-        details: error.message
+        details: (error as Error).message
       });
     }
   }

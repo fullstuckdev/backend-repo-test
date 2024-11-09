@@ -1,14 +1,20 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { FirebaseConfig } from '../../infrastructure/config/firebase.config';
-import { ApiError } from '../../utils/api-error';
 import axios from 'axios';
+import { BaseController } from './base.controller';
+import { Get } from '../../infrastructure/decorators/route.decorator';
 
-export class DevController {
+export class DevController extends BaseController {
   private readonly TEST_EMAIL = 'test@example.com';
   private readonly TEST_PASSWORD = 'Test123!@#';
   private readonly FIREBASE_API_KEY = process.env.FIREBASE_API_KEY;
 
-  async generateToken(req: Request, res: Response, next: NextFunction) {
+  constructor() {
+    super();
+  }
+
+  @Get('/generate-token')
+  async generateToken(req: Request, res: Response) {
     try {
       const auth = FirebaseConfig.getInstance().getAuth();
       
@@ -30,10 +36,7 @@ export class DevController {
         }
       }
 
-      // First, create a custom token
       const customToken = await auth.createCustomToken(userRecord.uid);
-
-      // Exchange custom token for ID token
       const response = await axios.post(
         `https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyCustomToken?key=${this.FIREBASE_API_KEY}`,
         {
@@ -74,4 +77,4 @@ export class DevController {
       });
     }
   }
-} 
+}

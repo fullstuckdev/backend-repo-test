@@ -19,4 +19,4 @@ export const errorHandler = (
     success: false,
     error: 'Internal server error'
   });
-}; 
+};

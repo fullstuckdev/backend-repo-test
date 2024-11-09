@@ -56,4 +56,4 @@ export class FirebaseConfig {
   public getFirestore(): admin.firestore.Firestore {
     return this.app.firestore();
   }
-} 
+}

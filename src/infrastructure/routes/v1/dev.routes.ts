@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { DevController } from '../controllers/dev.controller';
+import { DevController } from '../../../interfaces/controllers/dev.controller';
 
 /**
  * @swagger
@@ -10,7 +10,7 @@ import { DevController } from '../controllers/dev.controller';
 
 /**
  * @swagger
- * /api/dev/generate-token:
+ * /api/v1/generate-token:
  *   get:
  *     summary: Generate a test token
  *     tags: [Development]
@@ -50,6 +50,7 @@ import { DevController } from '../controllers/dev.controller';
 const router = Router();
 const devController = new DevController();
 
-router.get('/generate-token', devController.generateToken.bind(devController));
+// Mount the controller's router
+router.use('/', devController.router);
 
-export { router as devRoutes }; 
+export { router as devRoutes };

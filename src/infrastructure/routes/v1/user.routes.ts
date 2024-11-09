@@ -1,6 +1,8 @@
-import { Router } from 'express';
-import { UserController } from '../controllers/user.controller';
-import { AuthMiddleware } from '../middleware/auth.middleware';
+import { Router } from "express";
+import { UserController } from "../../../interfaces/controllers/user.controller";
+import { UpdateUserUseCase } from "../../../application/use-cases/user/update-users.use-case";
+import { FetchUsersUseCase } from "../../../application/use-cases/user/fetch-users.use-case";
+import { FirebaseUserRepository } from "../../repositories/firebase-user.repository";
 
 /**
  * @swagger
@@ -36,7 +38,7 @@ import { AuthMiddleware } from '../middleware/auth.middleware';
 
 /**
  * @swagger
- * /api/users/update-user-data/{id}:
+ * /api/v1/users/update-user-data/{id}:
  *   put:
  *     tags: [Users]
  *     summary: Update user data by ID
@@ -105,10 +107,9 @@ import { AuthMiddleware } from '../middleware/auth.middleware';
  *         description: Server error
  */
 
-
 /**
  * @swagger
- * /api/users/fetch-users-data:
+ * /api/v1/users/fetch-users-data:
  *   get:
  *     tags: [Users]
  *     summary: Fetch all users
@@ -152,19 +153,12 @@ import { AuthMiddleware } from '../middleware/auth.middleware';
  */
 
 const router = Router();
-const userController = new UserController();
+const userRepository = new FirebaseUserRepository();
+const updateUserUseCase = new UpdateUserUseCase(userRepository);
+const fetchUsersUseCase = new FetchUsersUseCase(userRepository);
 
+// Create controller and get its router
+const userController = new UserController(updateUserUseCase, fetchUsersUseCase);
+router.use('/', userController.router);
 
-router.put(
-  '/update-user-data/:id',
-  AuthMiddleware.authenticate,
-  userController.updateUserData.bind(userController)
-);
-
-router.get(
-  '/fetch-users-data',
-  AuthMiddleware.authenticate,
-  userController.fetchUsers.bind(userController)
-);
-
-export { router as userRoutes }; 
+export { router as userRoutes };

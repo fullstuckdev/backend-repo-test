@@ -9,8 +9,10 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "typeRoots": [
-      "./src/types",
+      "./src/infrastructure/di/types",
       "./node_modules/@types"
     ],
     "types": ["node", "express"]
