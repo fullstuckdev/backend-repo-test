@@ -1,13 +1,15 @@
 import { Response, NextFunction } from 'express';
-import { IUpdateUserUseCase, IFetchUserUseCase } from '../../application/interfaces/use-cases/user-use-cases.interface';
-import { UserPresenter } from '../presenters/user.presenter';
-import { FirebaseUserRepository } from '../../infrastructure/repositories/firebase-user.repository';
-import { AuthenticatedRequestHandler } from '../types/express.types';
 import { UpdateUserUseCase } from '../../application/use-cases/user/update-user.use-case';
 import { FetchUserUseCase } from '../../application/use-cases/user/fetch-user.use-case';
+import { UserPresenter } from '../presenters/user.presenter';
+import { FirebaseUserRepository } from '../../infrastructure/repositories/firebase-user.repository';
+import { AuthenticatedRequest } from '../types/express.types';
+import { SwaggerResponse } from '../types/swagger.types';
+import { UserDTO } from '../types/user.types';
+
 export class UserController {
-  private updateUserUseCase: IUpdateUserUseCase;
-  private fetchUserUseCase: IFetchUserUseCase;
+  private updateUserUseCase: UpdateUserUseCase;
+  private fetchUserUseCase: FetchUserUseCase;
   private userPresenter: UserPresenter;
 
   constructor() {
@@ -17,7 +19,11 @@ export class UserController {
     this.userPresenter = new UserPresenter();
   }
 
-  updateUser: AuthenticatedRequestHandler = async (req, res, next) => {
+  updateUser = async (
+    req: AuthenticatedRequest,
+    res: Response<SwaggerResponse<never>>,
+    next: NextFunction
+  ) => {
     try {
       const userId = req.user.uid;
       await this.updateUserUseCase.execute(userId, req.body);
@@ -30,7 +36,11 @@ export class UserController {
     }
   };
 
-  fetchUser: AuthenticatedRequestHandler = async (req, res, next) => {
+  fetchUser = async (
+    req: AuthenticatedRequest,
+    res: Response<SwaggerResponse<UserDTO>>,
+    next: NextFunction
+  ) => {
     try {
       const userId = req.user.uid;
       const user = await this.fetchUserUseCase.execute(userId);

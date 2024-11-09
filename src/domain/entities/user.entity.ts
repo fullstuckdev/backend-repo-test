@@ -1,3 +1,5 @@
+import { UserDTO } from '../../interfaces/types/user.types';
+
 export class User {
   private constructor(
     private readonly _id: string,
@@ -41,7 +43,7 @@ export class User {
     this._updatedAt = new Date();
   }
 
-  toJSON() {
+  toJSON(): UserDTO {
     return {
       id: this._id,
       email: this._email,

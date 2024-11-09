@@ -1,6 +1,9 @@
 import { IUserRepository } from '../../application/interfaces/repositories/user-repository.interface';
 import { User } from '../../domain/entities/user.entity';
-import { FirebaseConfig } from '../../infrastructure/config/firebase.config';
+import { FirebaseConfig } from '../config/firebase.config';
+import { UserMapper } from '../mappers/user.mapper';
+import { ApiError } from '../../utils/api-error';
+import { FirestoreUserData } from '../../interfaces/types/firestore.types';
 
 export class FirebaseUserRepository implements IUserRepository {
   private readonly db: FirebaseFirestore.Firestore;
@@ -16,24 +19,26 @@ export class FirebaseUserRepository implements IUserRepository {
       
       if (!doc.exists) return null;
       
-      const data = doc.data()!;
-      return User.create({
+      const data = doc.data()! as Omit<FirestoreUserData, 'id'>;
+      return UserMapper.toDomain({
         id: doc.id,
         email: data.email,
         name: data.name,
-        createdAt: data.createdAt.toDate(),
-        updatedAt: data.updatedAt.toDate()
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt
       });
     } catch (error) {
-      throw new Error('Failed to fetch user from database');
+      throw new ApiError(500, 'Failed to fetch user from database');
     }
   }
 
   async update(user: User): Promise<void> {
     try {
-      await this.db.collection(this.COLLECTION).doc(user.id).update(user.toJSON());
+      const data = UserMapper.toFirestore(user);
+      const { id, ...updateData } = data; // Remove id from update data
+      await this.db.collection(this.COLLECTION).doc(data.id).update(updateData);
     } catch (error) {
-      throw new Error('Failed to update user in database');
+      throw new ApiError(500, 'Failed to update user in database');
     }
   }
 } 

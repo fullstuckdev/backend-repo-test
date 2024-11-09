@@ -1,27 +1,23 @@
 import { User } from '../../domain/entities/user.entity';
+import { SwaggerResponse } from '../types/swagger.types';
+import { UserDTO } from '../types/user.types';
 
 export class UserPresenter {
-  toResponse(user: User) {
+  toResponse(user: User): SwaggerResponse<UserDTO> {
     return {
       success: true,
-      data: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt
-      }
+      data: user.toJSON()
     };
   }
 
-  success(message: string) {
+  success(message: string): SwaggerResponse<never> {
     return {
       success: true,
       message
     };
   }
 
-  error(message: string) {
+  error(message: string): SwaggerResponse<never> {
     return {
       success: false,
       error: message
