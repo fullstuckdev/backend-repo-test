@@ -1,5 +1,6 @@
-import * as admin from 'firebase-admin';
-import dotenv from 'dotenv';
+import * as admin from "firebase-admin";
+import dotenv from "dotenv";
+import { EmulatorConfig } from "./emulator.config";
 
 dotenv.config();
 
@@ -9,31 +10,36 @@ export class FirebaseConfig {
 
   private constructor() {
     try {
-      const privateKey = process.env.FIREBASE_PRIVATE_KEY!
-        .replace(/\\n/g, '\n')
-        .replace(/"/g, '');
+      EmulatorConfig.setup();
+
+      const privateKey = process.env
+        .FB_PRIVATE_KEY!.replace(/\\n/g, "\n")
+        .replace(/"/g, "");
 
       const serviceAccount = {
         type: "service_account",
-        project_id: process.env.FIREBASE_PROJECT_ID,
+        project_id: process.env.FB_PROJECT_ID,
         private_key: privateKey,
-        client_email: process.env.FIREBASE_CLIENT_EMAIL,
+        client_email: process.env.FB_CLIENT_EMAIL,
       };
-
-      console.log('Private key starts with:', privateKey.substring(0, 50));
 
       if (!admin.apps.length) {
         this.app = admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount as admin.ServiceAccount)
+          credential: admin.credential.cert(
+            serviceAccount as admin.ServiceAccount
+          ),
         });
-        console.log('Firebase app initialized successfully');
+
+        if (EmulatorConfig.isUsingEmulator()) {
+          console.log("🔥 Using Firebase Emulators");
+        } else {
+          console.log("🔥 Using Production Firebase");
+        }
       } else {
         this.app = admin.app();
-        console.log('Using existing Firebase app');
       }
-
     } catch (error) {
-      console.error('Error initializing Firebase:', error);
+      console.error("Error initializing Firebase:", error);
       throw error;
     }
   }

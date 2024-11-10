@@ -11,6 +11,8 @@ import { UserController } from '../../interfaces/controllers/user.controller';
 import { FirebaseUserRepository } from '../repositories/firebase-user.repository';
 import { FetchUsersUseCase } from '../../application/use-cases/user/fetch-users.use-case';
 import { DevController } from '../../interfaces/controllers/dev.controller';
+import dotenv from 'dotenv';
+dotenv.config();
 
 export class ExpressServer {
   private app: express.Application;
@@ -76,5 +78,9 @@ export class ExpressServer {
       console.log(`Server is running on port ${port}`);
       console.log(`Swagger documentation available at http://localhost:${port}/api-docs`);
     });
+  }
+
+  public getApp(): express.Application {
+    return this.app;
   }
 } 

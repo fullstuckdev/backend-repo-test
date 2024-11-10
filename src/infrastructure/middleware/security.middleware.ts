@@ -1,5 +1,7 @@
 import helmet from 'helmet';
 import { Application } from 'express';
+import dotenv from 'dotenv';
+dotenv.config();
 
 export const setupSecurityMiddleware = (app: Application) => {
   // Basic security headers

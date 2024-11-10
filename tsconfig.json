@@ -17,6 +17,7 @@
     ],
     "types": ["node", "express"]
   },
+  "compileOnSave": true,
   "include": [
     "src/**/*"
   ],

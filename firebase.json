@@ -1,15 +1,16 @@
 {
   "functions": {
     "source": ".",
-    "runtime": "nodejs18",
+    "runtime": "nodejs20",
     "predeploy": [
       "npm --prefix \"$RESOURCE_DIR\" run build"
-    ]
+    ],
+    "codebase": "default"
   },
   "emulators": {
     "functions": {
       "port": 5001,
-      "env_file": ".env"
+      "env_file": "./dist/.env"
     },
     "firestore": {
       "port": 8080

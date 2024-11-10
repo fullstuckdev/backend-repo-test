@@ -1,36 +1,38 @@
-import { Request, Response } from 'express';
-import { FirebaseConfig } from '../../infrastructure/config/firebase.config';
-import axios from 'axios';
-import { BaseController } from './base.controller';
-import { Get } from '../../infrastructure/decorators/route.decorator';
+import { Request, Response } from "express";
+import { FirebaseConfig } from "../../infrastructure/config/firebase.config";
+import axios from "axios";
+import { BaseController } from "./base.controller";
+import { Get } from "../../infrastructure/decorators/route.decorator";
+import dotenv from "dotenv";
+dotenv.config();
 
 export class DevController extends BaseController {
-  private readonly TEST_EMAIL = 'test@example.com';
-  private readonly TEST_PASSWORD = 'Test123!@#';
-  private readonly FIREBASE_API_KEY = process.env.FIREBASE_API_KEY;
+  private readonly TEST_EMAIL = "test@example.com";
+  private readonly TEST_PASSWORD = "Test123!@#";
+  private readonly FB_API_KEY = process.env.FB_API_KEY;
 
   constructor() {
     super();
   }
 
-  @Get('/generate-token')
+  @Get("/generate-token")
   async generateToken(req: Request, res: Response) {
     try {
       const auth = FirebaseConfig.getInstance().getAuth();
-      
+
       let userRecord;
 
       try {
         userRecord = await auth.getUserByEmail(this.TEST_EMAIL);
-        console.log('Found existing user:', userRecord.uid);
+        console.log("Found existing user:", userRecord.uid);
       } catch (error: any) {
-        if (error.code === 'auth/user-not-found') {
+        if (error.code === "auth/user-not-found") {
           userRecord = await auth.createUser({
             email: this.TEST_EMAIL,
             password: this.TEST_PASSWORD,
-            emailVerified: true
+            emailVerified: true,
           });
-          console.log('Created new user:', userRecord.uid);
+          console.log("Created new user:", userRecord.uid);
         } else {
           throw error;
         }
@@ -38,15 +40,15 @@ export class DevController extends BaseController {
 
       const customToken = await auth.createCustomToken(userRecord.uid);
       const response = await axios.post(
-        `https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyCustomToken?key=${this.FIREBASE_API_KEY}`,
+        `https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyCustomToken?key=${this.FB_API_KEY}`,
         {
           token: customToken,
-          returnSecureToken: true
+          returnSecureToken: true,
         }
       );
 
       const idToken = response.data.idToken;
-      
+
       return res.status(200).json({
         success: true,
         data: {
@@ -54,26 +56,25 @@ export class DevController extends BaseController {
           email: userRecord.email,
           token: idToken,
           bearerToken: `Bearer ${idToken}`,
-          expiresIn: response.data.expiresIn
+          expiresIn: response.data.expiresIn,
         },
-        message: 'Token generated successfully'
+        message: "Token generated successfully",
       });
-
     } catch (error: any) {
-      console.error('Error in generateToken:', error);
+      console.error("Error in generateToken:", error);
       if (axios.isAxiosError(error)) {
-        console.error('API Error details:', error.response?.data);
+        console.error("API Error details:", error.response?.data);
         return res.status(500).json({
           success: false,
-          error: 'Failed to generate token',
-          details: error.response?.data
+          error: "Failed to generate token",
+          details: error.response?.data,
         });
       }
       return res.status(500).json({
         success: false,
         error: error.message,
         code: error.code,
-        details: error
+        details: error,
       });
     }
   }
