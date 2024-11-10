@@ -53,11 +53,11 @@ export class ExpressServer {
     const devController = new DevController();
   
     // Mount routes
-    this.app.use('/api/v1/users', userController.router);
+    this.app.use('/v1/users', userController.router);
   
     // Development routes only in non-production
     if (process.env.NODE_ENV !== 'production') {
-      this.app.use('/api/v1', devController.router);
+      this.app.use('/v1', devController.router);
     }
   
     // Error handling should be last
