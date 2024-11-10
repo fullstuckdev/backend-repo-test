@@ -1,6 +1,21 @@
-🚀 Backend Service with Firebase
-A robust **Node.js** backend service built with **TypeScript**, **Express**, and **Firebase**, implementing Clean Architecture principles and modern development practices.
-🌟 Features
+# 🚀 Backend Service with Firebase
+
+![Nodemon](https://img.shields.io/badge/Nodemon-3.1.7-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.6.3-blue)
+![Types-Faker](https://img.shields.io/badge/Types--Faker-6.6.11-blue)
+![Axios](https://img.shields.io/badge/Axios-1.7.7-blue)
+![Class-Transformer](https://img.shields.io/badge/Class--Transformer-0.5.1-blue)
+![Class-Validator](https://img.shields.io/badge/Class--Validator-0.14.1-blue)
+![Dotenv](https://img.shields.io/badge/Dotenv-16.4.5-blue)
+![Envalid](https://img.shields.io/badge/Envalid-8.0.0-blue)
+![Express-Rate-Limit](https://img.shields.io/badge/Express--Rate--Limit-7.4.1-blue)
+![Firebase-Admin](https://img.shields.io/badge/Firebase--Admin-12.7.0-orange)
+![Firebase-Functions](https://img.shields.io/badge/Firebase--Functions-6.1.0-orange)
+![Firebase-Tools](https://img.shields.io/badge/Firebase--Tools-13.24.2-orange)
+![Helmet](https://img.shields.io/badge/Helmet-8.0.0-blue)
+
+
+A robust Node.js backend service built with TypeScript, Express, and Firebase, implementing Clean Architecture principles and following modern development practices.
 
 ### Core Features
 - 🧹 **Clean Architecture** implementation
