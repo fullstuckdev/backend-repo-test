@@ -94,7 +94,6 @@ FB_PROJECT_ID=your-project-id
 FB_PRIVATE_KEY=your-private-key
 FB_CLIENT_EMAIL=your-client-email
 FB_API_KEY=your-api-key
-IS_EMULATOR=true
 ```
 
 4. **Validate Environment**
@@ -225,7 +224,6 @@ The service uses Firebase Admin SDK and requires proper credentials. Configurati
 - `FB_PRIVATE_KEY`: Firebase private key
 - `FB_CLIENT_EMAIL`: Firebase client email
 - `FB_API_KEY`: Firebase API key
-- `IS_EMULATOR`: Enable/disable Firebase emulator mode
 
 📄 License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
